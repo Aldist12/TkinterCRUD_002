@@ -324,7 +324,7 @@ class MysticProdiApp:
         animate_symbol()
     
     def get_prediction_based_on_highest(self):
-        """Get prediction based on highest score"""
+        """Get prediction based on highest score with special logic for Technology Information"""
         scores = {}
         
         # Collect all non-empty scores
@@ -339,11 +339,26 @@ class MysticProdiApp:
         if not scores:
             return "🎯 Teknologi Informasi"  # Default
         
-        # Find subject with highest score
+        # Special logic for Technology Information
+        # If both Math and Physics scores are >= 80, prioritize Technology Information
+        if ("matematika" in scores and "fisika" in scores and 
+            scores["matematika"] >= 80 and scores["fisika"] >= 80):
+            avg_math_physics = (scores["matematika"] + scores["fisika"]) / 2
+            return "🎯 Teknologi Informasi", "matematika_fisika", avg_math_physics
+        
+        # Alternative: If Math or Physics is highest AND >= 75, consider Technology Information
         highest_subject = max(scores, key=scores.get)
         highest_score = scores[highest_subject]
         
-        # Get prediction from mapping
+        if ((highest_subject == "matematika" or highest_subject == "fisika") and 
+            highest_score >= 75):
+            # Check if the other subject (math or physics) also has decent score
+            other_subject = "fisika" if highest_subject == "matematika" else "matematika"
+            if other_subject in scores and scores[other_subject] >= 70:
+                combined_score = (highest_score + scores[other_subject]) / 2
+                return "🎯 Teknologi Informasi", f"{highest_subject}_{other_subject}", combined_score
+        
+        # Get prediction from regular mapping
         prediction = self.prediction_map.get(highest_subject, "🎯 Teknologi Informasi")
         
         return prediction, highest_subject, highest_score
@@ -630,16 +645,26 @@ class MysticProdiApp:
                 'biologi': 'Biologi Herbal', 'fisika': 'Fisika Gaib', 'bahasa_inggris': 'Bahasa Asing',
                 'matematika': 'Matematika Mistik', 'kimia': 'Kimia Alkemis', 'ekonomi': 'Ekonomi Ramalan',
                 'sejarah': 'Sejarah Kuno', 'geografi': 'Geografi Mistis', 
-                'bahasa_indonesia': 'Bahasa Nusantara', 'sosiologi': 'Sosiologi Spiritual'
+                'bahasa_indonesia': 'Bahasa Nusantara', 'sosiologi': 'Sosiologi Spiritual',
+                'matematika_fisika': 'Kombinasi Matematika & Fisika Mistik',
+                'matematika_fisika': 'Matematika & Fisika Gaib',
+                'fisika_matematika': 'Fisika & Matematika Mistik'
             }
-            details_text += f"🏆 Nilai Tertinggi: {subject_display.get(highest_subject, highest_subject)} ({highest_score:.1f})\n"
+            details_text += f"🏆 Kekuatan Tertinggi: {subject_display.get(highest_subject, highest_subject)} ({highest_score:.1f})\n"
         details_text += f"🔮 Tingkat Kepercayaan: 99.9%\n\n"
-        details_text += "💫 RAMALAN ORACLE:\n"
-        details_text += '"Bintang-bintang berbisik tentang masa\n'
-        details_text += 'depanmu di bidang yang kau kuasai.\n'
-        details_text += 'Ikuti passion dan raih takdir gemilangmu!"'
+        details_text += "💫 RAMALAN MATA BATIN:\n"
         
-        details_text += f"\n\n💾 Takdirmu telah tersimpan dalam bola kristal mystis"
+        # Special oracle message for Technology Information
+        if prediction == "🎯 Teknologi Informasi":
+            details_text += '"Kristal digital berkilauan! Energi matematika\n'
+            details_text += 'dan fisika bergabung dalam harmoni teknologi.\n'
+            details_text += 'Masa depanmu terukir dalam kode dan algoritma!"'
+        else:
+            details_text += '"Bintang-bintang berbisik tentang masa\n'
+            details_text += 'depanmu di bidang yang kau kuasai.\n'
+            details_text += 'Ikuti passion dan raih takdir gemilangmu!"'
+        
+        details_text += f"\n\n💾 Takdir telah tersimpan dalam bola kristal mystis"
         
         details_label = tk.Label(
             content_frame,
@@ -745,7 +770,7 @@ class MysticProdiApp:
             conn.close()
             
             if not records:
-                messagebox.showinfo("Bola Kristal Mystis", "🔮 Belum ada data dalam grimoire digital")
+                messagebox.showinfo("Bola Kristal Mystis", "🔮 Belum ada Ramalan Takdir dalam grimoire digital")
                 return
             
             # Create database view window
@@ -819,7 +844,7 @@ class MysticProdiApp:
             close_button.pack(pady=10)
             
         except Exception as e:
-            messagebox.showerror("Error", f"Terjadi kesalahan saat membaca database: {str(e)}")
+            messagebox.showerror("Error", f"Terjadi kesalahan saat membaca bola kristal: {str(e)}")
 
 def main():
     """Summon the mystical application"""
@@ -869,12 +894,17 @@ program studi yang ditakdirkan untukmu ✨
 • 📚 Lihat riwayat ramalan (F1)
 • ⚠️ Validasi input yang ketat
 • 🔮 Satu tombol untuk ramal dan simpan
+• 💻 Logika khusus Teknologi Informasi
 
 🌟 PANDUAN MYSTIS:
 • Masukkan nama dan nilai spiritual (0-100)
 • Nilai harus berupa angka antara 0-100
-• Tekan "🔮 RAMAL TAKDIR ANDA" untuk prediksi
+• Tekan "🔮 RAMAL TAKDIR ANDA 🔮" untuk prediksi
 • ESC untuk meninggalkan dunia mistis
+
+💻 RAHASIA TEKNOLOGI INFORMASI:
+• Matematika ≥80 DAN Fisika ≥80 = TI
+• Matematika/Fisika tertinggi ≥75 + yang lain ≥70 = TI
 
 🔥 Bersiaplah untuk menyaksikan keajaiban! 🔥"""
         
